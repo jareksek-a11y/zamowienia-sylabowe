@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sylabowe Ciężarówki - Magazyn Przygód</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
     <style>
         body {
             font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -303,8 +300,8 @@
             // 1. "Mamy nowe zamówienie"
             await speak("Mamy nowe zamówienie", 100);
             
-            // 2. Przerwa 250ms (ćwierć sekundy), a potem "potrzebny jest [nazwa]"
-            await speak(`potrzebny jest ${currentData.word}`, 250);
+            // 2. Przerwa 250ms (ćwierć sekundy), a potem "Zamówienie to [nazwa]"
+            await speak(`Zamówienie to ${currentData.word}`, 250);
             
             // 3. Po kolejnych 250ms prośba o załadunek sylab
             speak("Rozpocznij załadunek odpowiednich sylab", 250); 

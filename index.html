@@ -34,16 +34,15 @@
             white-space: nowrap; 
         }
 
-        /* NOWY EKRAN STARTOWY - Rozciągnięte Tło */
+        /* Ekran Startowy */
         #start-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            /* Ładowanie obrazka jako tła */
             background-image: url('tlo_startowe.png'); 
-            background-size: cover; /* Rozciąga na cały ekran zachowując proporcje */
-            background-position: center bottom; /* Postać będzie trzymać się dołu ekranu */
+            background-size: cover; 
+            background-position: center bottom; 
             background-repeat: no-repeat;
-            background-color: #e0f7fa; /* Kolor zastępczy, gdyby obrazek ładował się wolniej */
+            background-color: #e0f7fa; 
             
             display: flex;
             flex-direction: column;
@@ -53,12 +52,10 @@
             text-align: center;
         }
 
-        /* Ulepszony tytuł, aby był widoczny na graficznym tle */
         #game-title {
             font-size: 4rem;
-            color: #ffffff; /* Biały tekst */
+            color: #ffffff; 
             margin-bottom: 50px;
-            /* Wyraźna czerwona obwódka i mocny cień */
             text-shadow: 
                 -2px -2px 0 #d32f2f, 
                  2px -2px 0 #d32f2f, 
@@ -93,12 +90,11 @@
             border-radius: 20px;
         }
 
-        #word-display { font-size: 3.5rem; font-weight: bold; color: #333; margin: 15px 0; text-transform: uppercase; }
-        #image-display { max-height: 250px; max-width: 250px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-bottom: 10px; object-fit: contain;}
+        #word-display { font-size: 4.5rem; font-weight: bold; color: #333; margin: 30px 0; text-transform: uppercase; }
         
         #syllables-container {
             display: flex; justify-content: center; gap: 20px;
-            margin: 40px 0; flex-wrap: wrap; min-height: 100px;
+            margin: 50px 0; flex-wrap: wrap; min-height: 100px;
         }
         .syllable {
             font-size: 3rem; background-color: #4caf50; color: white;
@@ -109,31 +105,46 @@
         }
         .syllable:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
 
-        #trucks-container {
-            display: flex; justify-content: center; gap: 25px;
-            margin-top: 50px; position: relative; flex-wrap: wrap;
-        }
-        .truck-wrapper {
-            display: flex; flex-direction: column; align-items: center;
+        /* NOWY WYGLĄD CIĘŻARÓWKI Z DŁUGĄ PAKĄ */
+        #single-truck {
+            display: flex;
+            align-items: flex-end; /* Wyrównuje pakę i kabinę do dołu */
+            justify-content: center;
+            margin-top: 50px;
             transition: transform 2.5s ease-in;
         }
+
+        #drop-zones-container {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            background-color: #eceff1; /* Kolor samej paki */
+            border: 5px solid #90a4ae;
+            border-right: none; /* Żeby łączyła się gładko z kabiną */
+            border-radius: 15px 0 0 15px;
+            margin-bottom: 12px; /* Lekkie uniesienie paki, żeby pasowała do kół kabiny */
+            box-shadow: inset 0 -10px 10px rgba(0,0,0,0.05);
+        }
+
         .truck-bed {
-            width: 150px; height: 100px;
+            width: 140px; height: 100px;
             border: 4px dashed #757575; border-radius: 15px;
             display: flex; justify-content: center; align-items: center;
-            margin-bottom: -15px; z-index: 1; background-color: rgba(255,255,255,0.6);
+            background-color: rgba(255,255,255,0.8);
             transition: background-color 0.3s, border-color 0.3s;
         }
+
         .truck-bed.filled {
             border-style: solid; border-color: #4caf50; background-color: transparent;
         }
 
-        .truck-img { 
-            font-size: 6rem; 
-            z-index: 0; 
+        .truck-cabin { 
+            font-size: 8rem; 
+            z-index: 2; 
             user-select: none; 
-            transform: scaleX(-1);
-            display: inline-block;
+            transform: scaleX(-1); /* Obrót kabiny w prawo */
+            line-height: 1;
+            margin-left: -5px; /* Przyciąga kabinę do paki */
         }
         
         .drive-away { transform: translateX(2000px); }
@@ -205,9 +216,9 @@
     <div id="score-counter">📦 Zrealizowane: <span id="score-value">0</span></div>
 
     <div id="game-container">
-        <img id="image-display" src="" alt="Przedmiot">
         <div id="word-display"></div>
         <div id="syllables-container"></div>
+        
         <div id="trucks-container"></div>
     </div>
 
@@ -230,30 +241,12 @@
         let speechSynth = window.speechSynthesis;
 
         const fallbackData = [
-            { word: "krowa", image: "", count: 2, syllables: ["kro", "wa"] },
-            { word: "banan", image: "", count: 2, syllables: ["ba", "nan"] },
-            { word: "samochód", image: "", count: 3, syllables: ["sa", "mo", "chód"] },
-            { word: "żyrafa", image: "", count: 3, syllables: ["ży", "ra", "fa"] },
-            { word: "dom", image: "", count: 1, syllables: ["dom"] }
+            { word: "krowa", count: 2, syllables: ["kro", "wa"] },
+            { word: "banan", count: 2, syllables: ["ba", "nan"] },
+            { word: "samochód", count: 3, syllables: ["sa", "mo", "chód"] },
+            { word: "żyrafa", count: 3, syllables: ["ży", "ra", "fa"] },
+            { word: "dom", count: 1, syllables: ["dom"] }
         ];
-
-        async function fetchImageUrl(searchTerm) {
-            const apiKey = '55011272-6080908fb8e3709114cdc34dd'; 
-            const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&lang=pl`;
-            
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.hits && data.hits.length > 0) {
-                    return data.hits[0].webformatURL; 
-                } else {
-                    return "https://via.placeholder.com/250x250.png?text=Brak+Obrazka";
-                }
-            } catch (error) {
-                console.error("Błąd wyszukiwania obrazka:", error);
-                return "https://via.placeholder.com/250x250.png?text=Błąd+Ładowania";
-            }
-        }
 
         async function fetchWords() {
             try {
@@ -268,7 +261,8 @@
                     const count = parseInt(cols[2]);
                     if (isNaN(count)) return null;
                     const syllables = cols.slice(3, 3 + count);
-                    return { word: cols[0], image: cols[1] || null, count: count, syllables: syllables };
+                    // Nie pobieramy już obrazka z arkusza
+                    return { word: cols[0], count: count, syllables: syllables };
                 }).filter(w => w !== null && w.word !== "");
                 
                 if (wordsData.length === 0) throw new Error("Pusty arkusz");
@@ -333,14 +327,7 @@
 
             const currentData = wordsData[currentWordIndex];
 
-            document.getElementById('image-display').src = "https://via.placeholder.com/250x250.png?text=Szukam...";
-            let finalImageUrl = currentData.image; 
-            
-            if (!finalImageUrl) {
-                finalImageUrl = await fetchImageUrl(currentData.word);
-            }
-            
-            document.getElementById('image-display').src = finalImageUrl;
+            // Wyświetlenie samego słowa
             document.getElementById('word-display').innerText = currentData.word;
 
             const sylContainer = document.getElementById('syllables-container');
@@ -360,24 +347,33 @@
                 sylContainer.appendChild(el);
             });
 
-            currentData.syllables.forEach((syl, index) => {
-                let wrapper = document.createElement('div');
-                wrapper.classList.add('truck-wrapper');
-                
+            // --- TWORZENIE JEDNEJ DŁUGIEJ CIĘŻARÓWKI ---
+            let singleTruck = document.createElement('div');
+            singleTruck.id = 'single-truck';
+
+            // Paka na sylaby
+            let dropZonesContainer = document.createElement('div');
+            dropZonesContainer.id = 'drop-zones-container';
+
+            currentData.syllables.forEach((syl) => {
                 let bed = document.createElement('div');
                 bed.classList.add('truck-bed');
                 bed.dataset.expected = syl; 
                 bed.addEventListener('dragover', dragOver);
                 bed.addEventListener('drop', drop);
-
-                let img = document.createElement('div');
-                img.classList.add('truck-img');
-                img.innerText = '🚛'; 
-
-                wrapper.appendChild(bed);
-                wrapper.appendChild(img);
-                trucksContainer.appendChild(wrapper);
+                dropZonesContainer.appendChild(bed);
             });
+
+            // Kabina ciężarówki
+            let truckCabin = document.createElement('div');
+            truckCabin.classList.add('truck-cabin');
+            truckCabin.innerText = '🚛';
+
+            // Złączenie paki i kabiny w jedną całość
+            singleTruck.appendChild(dropZonesContainer);
+            singleTruck.appendChild(truckCabin);
+            trucksContainer.appendChild(singleTruck);
+            // ------------------------------------------
 
             await speak("Mamy nowe zamówienie", 100);
             await speak(`Zamówienie to ${currentData.word}`, 250);
@@ -426,8 +422,8 @@
         }
 
         function winSequence() {
-            const trucks = document.querySelectorAll('.truck-wrapper');
-            trucks.forEach(t => t.classList.add('drive-away'));
+            // Cała długa ciężarówka odjeżdża razem
+            document.getElementById('single-truck').classList.add('drive-away');
             
             setTimeout(() => {
                 document.getElementById('thumbs-up').style.display = 'block';

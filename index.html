@@ -65,7 +65,7 @@
         }
 
         #word-display { font-size: 3.5rem; font-weight: bold; color: #333; margin: 15px 0; text-transform: uppercase; }
-        #image-display { max-height: 250px; max-width: 250px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-bottom: 10px;}
+        #image-display { max-height: 250px; max-width: 250px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-bottom: 10px; object-fit: contain;}
         
         #syllables-container {
             display: flex; justify-content: center; gap: 20px;
@@ -156,7 +156,8 @@
         ];
 
         async function fetchImageUrl(searchTerm) {
-            const apiKey = '42680453-294711f1c2436d4f9b870f214'; 
+            // TUTAJ ZOSTAŁ PODMIENIONY TWÓJ KLUCZ API
+            const apiKey = '55011272-6080908fb8e3709114cdc34dd'; 
             const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&lang=pl`;
             
             try {
@@ -296,16 +297,9 @@
                 trucksContainer.appendChild(wrapper);
             });
 
-            // --- ZMIENIONE KOMENDY GŁOSOWE ---
-            // 1. "Mamy nowe zamówienie"
             await speak("Mamy nowe zamówienie", 100);
-            
-            // 2. Przerwa 250ms (ćwierć sekundy), a potem "Zamówienie to [nazwa]"
             await speak(`Zamówienie to ${currentData.word}`, 250);
-            
-            // 3. Po kolejnych 250ms prośba o załadunek sylab
             speak("Rozpocznij załadunek odpowiednich sylab", 250); 
-            // ---------------------------------
         }
 
         function dragStart(e) {

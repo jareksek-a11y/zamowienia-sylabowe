@@ -107,7 +107,7 @@
         }
         .syllable:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
 
-        /* --- POPRAWIONY WYGLĄD CIĘŻARÓWKI Z NACZEPĄ --- */
+        /* WYGLĄD CIĘŻARÓWKI Z NACZEPĄ */
         #single-truck {
             display: flex;
             align-items: flex-end; 
@@ -116,14 +116,13 @@
             transition: transform 2.5s ease-in;
         }
 
-        /* Naczepa - dodano position: relative i wyższy z-index */
         .trailer-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-right: -20px; /* Głębsze wsunięcie pod ciągnik */
+            margin-right: -20px; 
             position: relative;
-            z-index: 5; /* Naczepa (wraz z kwadratami) jest teraz NA WIERZCHU */
+            z-index: 5; 
         }
 
         #drop-zones-container {
@@ -136,7 +135,7 @@
             width: 140px; height: 100px;
             border: 4px dashed #757575; border-radius: 10px;
             display: flex; justify-content: center; align-items: center;
-            background-color: rgba(236, 239, 241, 0.95); /* Zwiększona nieprzezroczystość, by lepiej przykryć ciągnik */
+            background-color: rgba(236, 239, 241, 0.95); 
             transition: background-color 0.3s, border-color 0.3s;
         }
         .truck-bed.filled {
@@ -170,14 +169,13 @@
             box-sizing: border-box;
         }
 
-        /* Rysunek ciągnika siodłowego - niższy z-index */
+        /* Rysunek ciągnika siodłowego */
         .truck-cabin { 
             height: 180px; 
             position: relative;
-            z-index: 1; /* Ciągnik jest rysowany POD naczepą */
+            z-index: 1; 
             user-select: none;
         }
-        /* -------------------------------------- */
         
         .drive-away { transform: translateX(2000px); }
 
@@ -266,6 +264,7 @@
         
         let wordsData = [];
         let currentWordIndex = -1;
+        let recentWords = []; // <-- NOWE: Tablica przechowująca historię słów
         let filledTrucks = 0;
         let wordsCompletedCount = 0;
         let audioCtx;
@@ -350,10 +349,23 @@
             filledTrucks = 0;
             
             let nextIndex;
+            // --- NOWE: Obliczamy maksymalną historię (max 20 słów),
+            // żeby nie zablokować gry, jeśli słów w pliku jest mniej niż 21.
+            let maxHistory = Math.min(20, wordsData.length - 1); 
+            
+            // Losuj słowo dopóki jego index znajduje się w historii ostatnio użytych
             do {
                 nextIndex = Math.floor(Math.random() * wordsData.length);
-            } while (nextIndex === currentWordIndex && wordsData.length > 1);
+            } while (recentWords.includes(nextIndex) && wordsData.length > 1);
+            
             currentWordIndex = nextIndex;
+            
+            // Dodaj do historii i usuń najstarsze, jeśli przekroczono limit
+            recentWords.push(currentWordIndex);
+            if (recentWords.length > maxHistory) {
+                recentWords.shift();
+            }
+            // ----------------------------------------------------
 
             const currentData = wordsData[currentWordIndex];
             document.getElementById('word-display').innerText = currentData.word;

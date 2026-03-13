@@ -82,7 +82,7 @@
         /* Stylizacja Kontenera Gry */
         #game-container {
             text-align: center;
-            width: 100%; max-width: 900px;
+            width: 100%; max-width: 1000px;
             padding: 30px;
             margin-top: 20px;
             display: none;
@@ -105,47 +105,80 @@
         }
         .syllable:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
 
-        /* NOWY WYGLĄD CIĘŻARÓWKI Z DŁUGĄ PAKĄ */
+        /* --- NOWY WYGLĄD CIĘŻARÓWKI Z NACZEPĄ --- */
         #single-truck {
             display: flex;
-            align-items: flex-end; /* Wyrównuje pakę i kabinę do dołu */
+            align-items: flex-end; /* Wyrównuje koła naczepy i ciągnika do jednej linii */
             justify-content: center;
             margin-top: 50px;
             transition: transform 2.5s ease-in;
         }
 
+        /* Kontener całej naczepy (pudła + platforma + koła) */
+        .trailer-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: -15px; /* Wsuwa delikatnie naczepę pod ciągnik */
+            z-index: 1;
+        }
+
         #drop-zones-container {
             display: flex;
-            gap: 15px;
-            padding: 20px;
-            background-color: #eceff1; /* Kolor samej paki */
-            border: 5px solid #90a4ae;
-            border-right: none; /* Żeby łączyła się gładko z kabiną */
-            border-radius: 15px 0 0 15px;
-            margin-bottom: 12px; /* Lekkie uniesienie paki, żeby pasowała do kół kabiny */
-            box-shadow: inset 0 -10px 10px rgba(0,0,0,0.05);
+            gap: 10px;
+            padding: 0 10px 5px 10px;
         }
 
         .truck-bed {
             width: 140px; height: 100px;
-            border: 4px dashed #757575; border-radius: 15px;
+            border: 4px dashed #757575; border-radius: 10px;
             display: flex; justify-content: center; align-items: center;
-            background-color: rgba(255,255,255,0.8);
+            background-color: rgba(236, 239, 241, 0.8);
             transition: background-color 0.3s, border-color 0.3s;
         }
-
         .truck-bed.filled {
             border-style: solid; border-color: #4caf50; background-color: transparent;
         }
 
-        .truck-cabin { 
-            font-size: 8rem; 
-            z-index: 2; 
-            user-select: none; 
-            transform: scaleX(-1); /* Obrót kabiny w prawo */
-            line-height: 1;
-            margin-left: -5px; /* Przyciąga kabinę do paki */
+        /* Główna rama/podłoga naczepy */
+        .trailer-base {
+            width: 100%;
+            height: 25px;
+            background-color: #424242;
+            border-radius: 4px;
+            border-bottom: 4px solid #212121;
+            z-index: 2;
+            position: relative;
         }
+
+        /* Miejsce na koła naczepy */
+        .wheels-container {
+            width: 70%;
+            display: flex;
+            justify-content: space-evenly;
+            margin-top: -10px; /* Sprawia, że koła chowają się pod ramą */
+            z-index: 1;
+        }
+
+        /* Pojedyncze koło */
+        .wheel {
+            width: 50px;
+            height: 50px;
+            background-color: #111;
+            border: 8px solid #9e9e9e; /* Szara felga */
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        /* Rysunek ciągnika siodłowego */
+        .truck-cabin { 
+            height: 180px; /* Wysokość dopasowana do naczepy */
+            z-index: 2; 
+            user-select: none;
+            /* Opcjonalne odwrócenie w prawo, zależy od pobranego obrazka */
+            /* transform: scaleX(-1); */ 
+        }
+        /* -------------------------------------- */
         
         .drive-away { transform: translateX(2000px); }
 
@@ -261,7 +294,6 @@
                     const count = parseInt(cols[2]);
                     if (isNaN(count)) return null;
                     const syllables = cols.slice(3, 3 + count);
-                    // Nie pobieramy już obrazka z arkusza
                     return { word: cols[0], count: count, syllables: syllables };
                 }).filter(w => w !== null && w.word !== "");
                 
@@ -326,8 +358,6 @@
             currentWordIndex = nextIndex;
 
             const currentData = wordsData[currentWordIndex];
-
-            // Wyświetlenie samego słowa
             document.getElementById('word-display').innerText = currentData.word;
 
             const sylContainer = document.getElementById('syllables-container');
@@ -347,14 +377,17 @@
                 sylContainer.appendChild(el);
             });
 
-            // --- TWORZENIE JEDNEJ DŁUGIEJ CIĘŻARÓWKI ---
+            // --- TWORZENIE ZAAWANSOWANEJ CIĘŻARÓWKI ---
             let singleTruck = document.createElement('div');
             singleTruck.id = 'single-truck';
 
-            // Paka na sylaby
+            // Kontener dla całej naczepy
+            let trailerWrapper = document.createElement('div');
+            trailerWrapper.classList.add('trailer-wrapper');
+
+            // 1. Strefy upuszczania (Pudła)
             let dropZonesContainer = document.createElement('div');
             dropZonesContainer.id = 'drop-zones-container';
-
             currentData.syllables.forEach((syl) => {
                 let bed = document.createElement('div');
                 bed.classList.add('truck-bed');
@@ -364,13 +397,34 @@
                 dropZonesContainer.appendChild(bed);
             });
 
-            // Kabina ciężarówki
-            let truckCabin = document.createElement('div');
-            truckCabin.classList.add('truck-cabin');
-            truckCabin.innerText = '🚛';
+            // 2. Baza naczepy (Płaska linia pod pudłami)
+            let trailerBase = document.createElement('div');
+            trailerBase.classList.add('trailer-base');
 
-            // Złączenie paki i kabiny w jedną całość
-            singleTruck.appendChild(dropZonesContainer);
+            // 3. Koła naczepy
+            let wheelsContainer = document.createElement('div');
+            wheelsContainer.classList.add('wheels-container');
+            // Zawsze dodajemy 2 osie kół dla naczepy
+            for(let i=0; i<2; i++) {
+                let wheel = document.createElement('div');
+                wheel.classList.add('wheel');
+                wheelsContainer.appendChild(wheel);
+            }
+
+            // Łączenie naczepy
+            trailerWrapper.appendChild(dropZonesContainer);
+            trailerWrapper.appendChild(trailerBase);
+            trailerWrapper.appendChild(wheelsContainer);
+
+            // Kabina (ciągnik siodłowy z internetu)
+            let truckCabin = document.createElement('img');
+            // Tymczasowy darmowy rysunek ciągnika. Możesz go pobrać na dysk i zmienić src na np. "ciagnik.png"
+            truckCabin.src = 'https://cdn-icons-png.flaticon.com/512/1008/1008064.png';
+            truckCabin.classList.add('truck-cabin');
+            truckCabin.alt = 'Ciągnik';
+
+            // Połączenie naczepy z kabiną
+            singleTruck.appendChild(trailerWrapper);
             singleTruck.appendChild(truckCabin);
             trucksContainer.appendChild(singleTruck);
             // ------------------------------------------
@@ -422,7 +476,6 @@
         }
 
         function winSequence() {
-            // Cała długa ciężarówka odjeżdża razem
             document.getElementById('single-truck').classList.add('drive-away');
             
             setTimeout(() => {

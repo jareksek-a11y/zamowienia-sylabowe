@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sylabowe Ciężarówki - Magazyn Przygód</title>
-    <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
     <style>
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            /* Zmiana czcionki na Arial */
+            font-family: Arial, Helvetica, sans-serif;
             background-color: #e0f7fa;
             margin: 0;
             padding: 0;
@@ -20,20 +18,21 @@
             min-height: 100vh;
         }
 
-        /* Licznik punktów */
+        /* Licznik punktów - Zablokowany w jednym miejscu, nie zawija tekstu */
         #score-counter {
             display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 2rem;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
             background-color: #2196f3;
             color: white;
-            padding: 15px 25px;
-            border-radius: 20px;
+            padding: 10px 20px;
+            border-radius: 15px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 900;
+            z-index: 1000;
             font-weight: bold;
+            white-space: nowrap; /* Zapobiega przechodzeniu do nowej linii */
         }
 
         /* Stylizacja Ekranu Startowego */
@@ -52,6 +51,7 @@
         #warehouse-man {
             font-size: 10rem;
             margin-bottom: 20px;
+            line-height: 1;
         }
 
         #game-title {
@@ -59,6 +59,7 @@
             color: #d32f2f;
             margin-bottom: 30px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            font-weight: bold;
         }
 
         button {
@@ -67,6 +68,8 @@
             border: none; border-radius: 25px;
             cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
             transition: transform 0.1s, background-color 0.2s;
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
         }
         button:hover { background-color: #e68a00; transform: scale(1.05); }
         button:active { transform: scale(0.95); box-shadow: 0 5px 10px rgba(0,0,0,0.3); }
@@ -95,6 +98,7 @@
             padding: 20px 40px; border-radius: 15px; cursor: grab;
             user-select: none; box-shadow: 0 6px 10px rgba(0,0,0,0.3);
             transition: transform 0.1s, box-shadow 0.1s;
+            font-weight: bold;
         }
         .syllable:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
 
@@ -127,10 +131,17 @@
         
         .drive-away { transform: translateX(2000px); }
 
+        /* Kciuk - Wymuszona pozycja centralna i brak blokowania kliknięć */
         #thumbs-up {
-            display: none; position: fixed;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 18rem; z-index: 500;
+            display: none; 
+            position: fixed;
+            top: 50%; left: 50%; 
+            margin: 0; padding: 0;
+            line-height: 1;
+            transform: translate(-50%, -50%);
+            font-size: 18rem; 
+            z-index: 2000;
+            pointer-events: none;
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
 
@@ -139,11 +150,11 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #e8f5e9; /* Przyjemny jasnozielony */
+            background-color: #e8f5e9;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 1500;
             text-align: center;
         }
 
@@ -161,7 +172,7 @@
         }
 
         #yes-button {
-            background-color: #4caf50; /* Zielony przycisk TAK */
+            background-color: #4caf50;
         }
         #yes-button:hover { background-color: #388e3c; }
 
@@ -181,7 +192,7 @@
 
     <div id="start-screen">
         <div id="game-title">Sylabowe Ciężarówki</div>
-        <div id="warehouse-man">👨‍🔧📦</div>
+        <div id="warehouse-man">👨‍🔧</div>
         <button onclick="startGame()">START!</button>
     </div>
 
@@ -208,7 +219,7 @@
         let wordsData = [];
         let currentWordIndex = -1;
         let filledTrucks = 0;
-        let wordsCompletedCount = 0; // Zmienna licząca zrealizowane zamówienia
+        let wordsCompletedCount = 0;
         let audioCtx;
         let speechSynth = window.speechSynthesis;
 
@@ -268,7 +279,7 @@
 
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
-            document.getElementById('score-counter').style.display = 'block'; // Pokazuje licznik
+            document.getElementById('score-counter').style.display = 'block';
             
             await fetchWords();
             loadNextWord();
@@ -416,15 +427,12 @@
                 document.getElementById('thumbs-up').style.display = 'block';
                 speak("Dobra robota", 0, 1.2).then(() => {
                     
-                    // Zwiększ licznik
                     wordsCompletedCount++;
                     document.getElementById('score-value').innerText = wordsCompletedCount;
                     
-                    // Poczekaj chwilę po pochwale
                     setTimeout(() => {
-                        document.getElementById('thumbs-up').style.display = 'none'; // Ukryj kciuka
+                        document.getElementById('thumbs-up').style.display = 'none';
                         
-                        // Sprawdź, czy osiągnięto wielokrotność 10 (10, 20, 30...)
                         if (wordsCompletedCount % 10 === 0 && wordsCompletedCount > 0) {
                             showMilestoneScreen();
                         } else {
@@ -436,25 +444,20 @@
             }, 1200); 
         }
 
-        // Funkcja wyświetlająca nagrodę co 10 słów
         function showMilestoneScreen() {
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('score-counter').style.display = 'none';
             document.getElementById('milestone-screen').style.display = 'flex';
             
-            // Upewniamy się, że przycisk TAK jest ukryty na starcie
             document.getElementById('yes-button').style.display = 'none';
             document.getElementById('milestone-text').innerText = `Zrealizowałeś ${wordsCompletedCount} zamówień!`;
             
-            // Odtwórz specjalną komendę
             const message = `Zrealizowałeś ${wordsCompletedCount} zamówień, gratulacje, czy chcesz pomóc mi z następnymi`;
             speak(message, 500, 1.1).then(() => {
-                // Gdy głos skończy mówić, pokaż przycisk "TAK"
                 document.getElementById('yes-button').style.display = 'inline-block';
             });
         }
 
-        // Funkcja po kliknięciu "TAK" na ekranie nagrody
         function continueGame() {
             document.getElementById('milestone-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';

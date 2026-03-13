@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sylabowe Ciężarówki</title>
+    <title>Sylabowe Ciężarówki - Magazyn Przygód</title>
     <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" href="icon.png">
-<link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -267,7 +267,7 @@
         
         let wordsData = [];
         let currentWordIndex = -1;
-        let recentWords = []; // <-- NOWE: Tablica przechowująca historię słów
+        let recentWords = [];
         let filledTrucks = 0;
         let wordsCompletedCount = 0;
         let audioCtx;
@@ -332,6 +332,7 @@
             });
         }
 
+        // --- DŹWIĘK BŁĘDU ---
         function playErrorSound() {
             if (!audioCtx) return;
             const oscillator = audioCtx.createOscillator();
@@ -347,28 +348,39 @@
             oscillator.stop(audioCtx.currentTime + 0.6);
         }
 
+        // --- DŹWIĘK SUKCESU ---
+        function playSuccessSound() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine'; 
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        }
+
         async function loadNextWord() {
             document.getElementById('thumbs-up').style.display = 'none';
             filledTrucks = 0;
             
             let nextIndex;
-            // --- NOWE: Obliczamy maksymalną historię (max 20 słów),
-            // żeby nie zablokować gry, jeśli słów w pliku jest mniej niż 21.
             let maxHistory = Math.min(20, wordsData.length - 1); 
             
-            // Losuj słowo dopóki jego index znajduje się w historii ostatnio użytych
             do {
                 nextIndex = Math.floor(Math.random() * wordsData.length);
             } while (recentWords.includes(nextIndex) && wordsData.length > 1);
             
             currentWordIndex = nextIndex;
             
-            // Dodaj do historii i usuń najstarsze, jeśli przekroczono limit
             recentWords.push(currentWordIndex);
             if (recentWords.length > maxHistory) {
                 recentWords.shift();
             }
-            // ----------------------------------------------------
 
             const currentData = wordsData[currentWordIndex];
             document.getElementById('word-display').innerText = currentData.word;
@@ -456,6 +468,8 @@
             if (!draggedElement) return;
 
             if (draggedElement.innerText === dropZone.dataset.expected) {
+                playSuccessSound(); 
+                
                 draggedElement.style.padding = "10px 20px";
                 draggedElement.style.fontSize = "2rem";
                 draggedElement.style.backgroundColor = "#81c784"; 
@@ -472,7 +486,7 @@
                 }
             } else {
                 document.getElementById('syllables-container').appendChild(draggedElement);
-                playErrorSound();
+                playErrorSound(); 
                 speak("To nie jest dobry pomysł", 50, 0.8); 
             }
         }

@@ -8,7 +8,8 @@
         body {
             /* Zmiana czcionki na Arial */
             font-family: Arial, Helvetica, sans-serif;
-            background-color: #e0f7fa;
+            /* Zmiana tła strony na białe */
+            background-color: #ffffff;
             margin: 0;
             padding: 0;
             display: flex;
@@ -39,7 +40,8 @@
         #start-screen {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #fff9c4;
+            /* Zmiana tła ekranu startowego na białe */
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -48,10 +50,12 @@
             text-align: center;
         }
 
-        #warehouse-man {
-            font-size: 10rem;
+        /* Stylizacja nowego obrazka magazyniera na ekranie startowym */
+        #warehouse-man-img {
+            max-height: 50vh; /* Zajmuje maksymalnie połowę wysokości ekranu */
+            max-width: 80vw;  /* Zajmuje maksymalnie 80% szerokości ekranu */
             margin-bottom: 20px;
-            line-height: 1;
+            object-fit: contain; /* Zachowuje proporcje i nie rozciąga obrazka */
         }
 
         #game-title {
@@ -81,9 +85,11 @@
             padding: 30px;
             margin-top: 20px;
             display: none;
-            background-color: white;
+            /* Tło kontenera gry jest białe (jak cała strona) */
+            background-color: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            /* Usunięcie cienia dla spójności z białym tłem */
+            /* box-shadow: 0 10px 25px rgba(0,0,0,0.1); */
         }
 
         #word-display { font-size: 3.5rem; font-weight: bold; color: #333; margin: 15px 0; text-transform: uppercase; }
@@ -150,7 +156,8 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #e8f5e9;
+            /* Zmiana tła ekranu nagrody na białe */
+            background-color: #ffffff;
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -192,7 +199,7 @@
 
     <div id="start-screen">
         <div id="game-title">Sylabowe Ciężarówki</div>
-        <div id="warehouse-man">👨‍🔧</div>
+        <img src="magazynier_machajacy.png" alt="Magazynier" id="warehouse-man-img">
         <button onclick="startGame()">START!</button>
     </div>
 
@@ -214,6 +221,7 @@
     <div id="thumbs-up">👍</div>
 
     <script>
+        // Link do Twojego pliku CSV z arkusza Google
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQl1v8YHdeG7Y-IAdVkiRpPcEeo8oedqzxdilFRs8eD2ak2PdepgWeBw-zngXEXagm7JS_4flbf0eoy/pub?gid=0&single=true&output=csv"; 
         
         let wordsData = [];
@@ -223,6 +231,7 @@
         let audioCtx;
         let speechSynth = window.speechSynthesis;
 
+        // Awaryjne dane, gdyby brakło internetu
         const fallbackData = [
             { word: "krowa", image: "", count: 2, syllables: ["kro", "wa"] },
             { word: "banan", image: "", count: 2, syllables: ["ba", "nan"] },
@@ -231,7 +240,9 @@
             { word: "dom", image: "", count: 1, syllables: ["dom"] }
         ];
 
+        // Wyszukiwanie obrazka przez Pixabay API
         async function fetchImageUrl(searchTerm) {
+            // Użyty Twój własny klucz API Pixabay
             const apiKey = '55011272-6080908fb8e3709114cdc34dd'; 
             const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(searchTerm)}&image_type=photo&per_page=3&lang=pl`;
             
@@ -274,20 +285,25 @@
         }
 
         async function startGame() {
+            // Przeglądarki wymagają interakcji użytkownika (kliknięcia), aby odtwarzać dźwięk
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Głos startowy
             await speak("Bierzemy się do roboty", 0, 1.1); 
 
+            // Przełączanie ekranów
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';
             document.getElementById('score-counter').style.display = 'block';
             
+            // Pobieranie słów i ładowanie pierwszego zadania
             await fetchWords();
             loadNextWord();
         }
 
         function speak(text, delay = 0, pitch = 1) {
             return new Promise(resolve => {
-                speechSynth.cancel(); 
+                speechSynth.cancel(); // Przerywa poprzednie wypowiedzi
                 setTimeout(() => {
                     const utterance = new SpeechSynthesisUtterance(text);
                     utterance.lang = 'pl-PL';
@@ -319,6 +335,7 @@
             document.getElementById('thumbs-up').style.display = 'none';
             filledTrucks = 0;
             
+            // Wybór losowego słowa
             let nextIndex;
             do {
                 nextIndex = Math.floor(Math.random() * wordsData.length);
@@ -327,6 +344,7 @@
 
             const currentData = wordsData[currentWordIndex];
 
+            // Ładowanie obrazka (z arkusza lub wyszukiwarki)
             document.getElementById('image-display').src = "https://via.placeholder.com/250x250.png?text=Szukam...";
             let finalImageUrl = currentData.image; 
             
@@ -337,11 +355,13 @@
             document.getElementById('image-display').src = finalImageUrl;
             document.getElementById('word-display').innerText = currentData.word;
 
+            // Czyszczenie planszy
             const sylContainer = document.getElementById('syllables-container');
             const trucksContainer = document.getElementById('trucks-container');
             sylContainer.innerHTML = '';
             trucksContainer.innerHTML = '';
 
+            // Przygotowanie i mieszanie sylab
             let shuffledSyllables = [...currentData.syllables].sort(() => Math.random() - 0.5);
 
             shuffledSyllables.forEach((syl, index) => {
@@ -349,42 +369,45 @@
                 el.classList.add('syllable');
                 el.innerText = syl;
                 el.setAttribute('draggable', true);
-                el.id = 'syl_' + index + '_' + Date.now(); 
+                el.id = 'syl_' + index + '_' + Date.now(); // Unikalne ID dla każdego elementu
                 el.addEventListener('dragstart', dragStart);
                 sylContainer.appendChild(el);
             });
 
+            // Tworzenie ciężarówek (miejsc na sylaby)
             currentData.syllables.forEach((syl, index) => {
                 let wrapper = document.createElement('div');
                 wrapper.classList.add('truck-wrapper');
                 
                 let bed = document.createElement('div');
                 bed.classList.add('truck-bed');
-                bed.dataset.expected = syl; 
+                bed.dataset.expected = syl; // Zapisuje poprawną sylabę dla tej ciężarówki
                 bed.addEventListener('dragover', dragOver);
                 bed.addEventListener('drop', drop);
 
                 let img = document.createElement('div');
                 img.classList.add('truck-img');
-                img.innerText = '🚛'; 
+                img.innerText = '🚛'; // Emoji ciężarówki
 
                 wrapper.appendChild(bed);
                 wrapper.appendChild(img);
                 trucksContainer.appendChild(wrapper);
             });
 
+            // Komendy głosowe
             await speak("Mamy nowe zamówienie", 100);
             await speak(`Zamówienie to ${currentData.word}`, 250);
             speak("Rozpocznij załadunek odpowiednich sylab", 250); 
         }
 
+        // Obsługa przeciągania (Drag and Drop)
         function dragStart(e) {
             e.dataTransfer.setData('text/plain', e.target.id);
             setTimeout(() => e.target.style.opacity = "0.5", 0); 
         }
 
         function dragOver(e) {
-            e.preventDefault(); 
+            e.preventDefault(); // Pozwala na upuszczenie elementu
         }
 
         function drop(e) {
@@ -393,46 +416,57 @@
             const draggedElement = document.getElementById(id);
             if (draggedElement) draggedElement.style.opacity = "1"; 
             
-            const dropZone = e.currentTarget; 
+            const dropZone = e.currentTarget; // Ciężarówka, na którą upuszczono sylabę
 
             if (!draggedElement) return;
 
+            // Sprawdzenie, czy sylaba pasuje do ciężarówki
             if (draggedElement.innerText === dropZone.dataset.expected) {
+                // POPRAWNA SYLABA
                 draggedElement.style.padding = "10px 20px";
                 draggedElement.style.fontSize = "2rem";
                 draggedElement.style.backgroundColor = "#81c784"; 
-                draggedElement.setAttribute('draggable', false); 
-                dropZone.appendChild(draggedElement); 
+                draggedElement.setAttribute('draggable', false); // Wyłącza ponowne przeciąganie
+                dropZone.appendChild(draggedElement); // Umieszcza sylabę na ciężarówce
                 dropZone.classList.add('filled');
                 
+                // Usuwa nasłuchiwacze, aby nie można było upuścić nic więcej na tę ciężarówkę
                 dropZone.removeEventListener('dragover', dragOver);
                 dropZone.removeEventListener('drop', drop);
                 
                 filledTrucks++;
+                // Sprawdza, czy wszystkie ciężarówki są pełne
                 if (filledTrucks === wordsData[currentWordIndex].count) {
                     winSequence();
                 }
             } else {
+                // NIEPOPRAWNA SYLABA
+                // Przenosi sylabę z powrotem do puli
                 document.getElementById('syllables-container').appendChild(draggedElement);
                 playErrorSound();
                 speak("To nie jest dobry pomysł", 50, 0.8); 
             }
         }
 
+        // Sekwencja po poprawnym ułożeniu całego słowa
         function winSequence() {
+            // Ciężarówki odjeżdżają
             const trucks = document.querySelectorAll('.truck-wrapper');
             trucks.forEach(t => t.classList.add('drive-away'));
             
+            // Pokazuje kciuk w górę i ładuje kolejne słowo
             setTimeout(() => {
                 document.getElementById('thumbs-up').style.display = 'block';
                 speak("Dobra robota", 0, 1.2).then(() => {
                     
+                    // Zwiększ licznik punktów
                     wordsCompletedCount++;
                     document.getElementById('score-value').innerText = wordsCompletedCount;
                     
                     setTimeout(() => {
-                        document.getElementById('thumbs-up').style.display = 'none';
+                        document.getElementById('thumbs-up').style.display = 'none'; // Ukryj kciuka
                         
+                        // Sprawdź, czy osiągnięto wielokrotność 10
                         if (wordsCompletedCount % 10 === 0 && wordsCompletedCount > 0) {
                             showMilestoneScreen();
                         } else {
@@ -444,20 +478,25 @@
             }, 1200); 
         }
 
+        // Funkcja wyświetlająca ekran nagrody co 10 słów
         function showMilestoneScreen() {
             document.getElementById('game-container').style.display = 'none';
             document.getElementById('score-counter').style.display = 'none';
             document.getElementById('milestone-screen').style.display = 'flex';
             
+            // Przycisk "TAK" jest ukryty na starcie
             document.getElementById('yes-button').style.display = 'none';
             document.getElementById('milestone-text').innerText = `Zrealizowałeś ${wordsCompletedCount} zamówień!`;
             
+            // Odtwórz specjalną komendę głosową
             const message = `Zrealizowałeś ${wordsCompletedCount} zamówień, gratulacje, czy chcesz pomóc mi z następnymi`;
             speak(message, 500, 1.1).then(() => {
+                // Gdy głos skończy mówić, pokaż przycisk "TAK"
                 document.getElementById('yes-button').style.display = 'inline-block';
             });
         }
 
+        // Funkcja po kliknięciu "TAK" na ekranie nagrody
         function continueGame() {
             document.getElementById('milestone-screen').style.display = 'none';
             document.getElementById('game-container').style.display = 'block';

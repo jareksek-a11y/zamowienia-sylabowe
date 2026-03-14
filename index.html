@@ -107,6 +107,7 @@
             font-weight: bold;
             position: relative;
             z-index: 10;
+            touch-action: none; /* Zapobiega przewijaniu i przyspiesza reakcję na dotyk */
         }
         .syllable:active { cursor: grabbing; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
 
@@ -238,6 +239,9 @@
             60% {transform: translateY(-15px);}
         }
     </style>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
 </head>
 <body>
 
@@ -263,6 +267,14 @@
     <div id="thumbs-up">👍</div>
 
     <script>
+        // Inicjalizacja natychmiastowego przeciągania na ekranach dotykowych
+        MobileDragDrop.polyfill({
+            dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+        });
+        
+        // Zabezpieczenie przed błędem przewijania na niektórych urządzeniach
+        window.addEventListener('touchmove', function() {}, {passive: false});
+
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQl1v8YHdeG7Y-IAdVkiRpPcEeo8oedqzxdilFRs8eD2ak2PdepgWeBw-zngXEXagm7JS_4flbf0eoy/pub?gid=0&single=true&output=csv"; 
         
         let wordsData = [];
